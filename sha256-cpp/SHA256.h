@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
-const uint32_t K[] = {
+
+const uint32_t K[64] = {
 	1116352408, 1899447441, 3049323471, 3921009573, 961987163, 1508970993, 2453635748, 2870763221,
 	3624381080, 310598401, 607225278, 1426881987, 1925078388, 2162078206, 2614888103, 3248222580,
 	3835390401, 4022224774, 264347078, 604807628, 770255983, 1249150122, 1555081692, 1996064986,
@@ -25,7 +26,7 @@ uint32_t big_sigma_0(uint32_t x) {
 uint32_t big_sigma_1(uint32_t x) {
 	return right_rotate(x, 6) ^ right_rotate(x, 11) ^ right_rotate(x, 25);
 }
-void message_schedule(uint32_t W[], char A[]) {
+void message_schedule(uint32_t(&W)[64], char(&A)[64]) {
 	for (int i = 0; i < 16; i++) {
 		W[i] = (A[i * 4] << 24) |
 			(A[i * 4 + 1] << 16) |
@@ -43,7 +44,7 @@ uint32_t choice(uint32_t x, uint32_t y, uint32_t z) {
 uint32_t majority(uint32_t x, uint32_t y, uint32_t z) {
 	return (x & y) ^ (x & z) ^ (y & z);
 }
-void round(uint32_t state[], uint32_t round_constant, uint32_t schedule_word) {
+void round(uint32_t(&state)[8], uint32_t round_constant, uint32_t schedule_word) {
 	uint32_t T1 = state[7] +
 		big_sigma_1(state[4]) +
 		choice(state[4], state[5], state[6]) +
@@ -57,12 +58,9 @@ void round(uint32_t state[], uint32_t round_constant, uint32_t schedule_word) {
 	state[0] = T1 + T2;
 	state[4] += T1;
 }
-uint32_t* compress_block(uint32_t initial_state[], char block[]) {
-	uint32_t* state = new uint32_t[8]();
-	uint32_t W[64];
+void compress_block(uint32_t(&W)[64], uint32_t(&initial_state)[8], uint32_t(&state)[8], char(&block)[64]) {
 	for (int i = 0; i < 8; i++) state[i] = initial_state[i];
 	message_schedule(W, block);
 	for (int i = 0; i < 64; i++) round(state, W[i], K[i]);
 	for (int i = 0; i < 8; i++) state[i] = state[i] + initial_state[i];
-	return state;
 }
