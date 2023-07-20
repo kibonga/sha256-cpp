@@ -58,9 +58,11 @@ void round(uint32_t(&state)[8], uint32_t round_constant, uint32_t schedule_word)
 	state[0] = T1 + T2;
 	state[4] += T1;
 }
-void compress_block(uint32_t(&W)[64], uint32_t(&initial_state)[8], uint32_t(&state)[8], char(&block)[64]) {
+void compress_block(uint32_t(&initial_state)[8], char(&block)[64]) {
+	uint32_t W[64];
+	uint32_t state[8];
 	for (int i = 0; i < 8; i++) state[i] = initial_state[i];
 	message_schedule(W, block);
 	for (int i = 0; i < 64; i++) round(state, W[i], K[i]);
-	for (int i = 0; i < 8; i++) state[i] = state[i] + initial_state[i];
+	for (int i = 0; i < 8; i++) initial_state[i] += state[i];
 }

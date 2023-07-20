@@ -7,8 +7,6 @@ using namespace std;
 
 int main()
 {
-	uint32_t W[64];
-	uint32_t state[8];
 	uint32_t initial_state[8] = {
 		2918946378, 1679978889, 1678006433,  650957219,
 		379281712, 2112907926, 1775216060, 2152648190
@@ -24,10 +22,10 @@ int main()
 		103, 117,  97, 114,  32,  120, 101, 110
 	};
 
-	compress_block(W, initial_state, state, block);
+	compress_block(initial_state, block);
 	cout << "Compress block " << endl;
 	for (int i = 0; i < 8; i++) {
-		cout << state[i] << endl;
+		cout << initial_state[i] << endl;
 	}
 }
 
