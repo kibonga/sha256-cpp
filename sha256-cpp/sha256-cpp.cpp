@@ -1,32 +1,18 @@
 // sha256-cpp.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
-
-#include <iostream>
 #include "SHA256.h"
+#include "Utils.h"
 using namespace std;
 
 int main()
 {
-	uint32_t initial_state[8] = {
-		2918946378, 1679978889, 1678006433,  650957219,
-		379281712, 2112907926, 1775216060, 2152648190
-	};
-	char block[] = {
-		109,  97, 110,  97,  116, 101, 101,  32,
-		102, 111, 120,  32,  117, 110, 105,  99,
-		111, 114, 110,  32,  111,  99, 116, 111,
-		112, 117, 115,  32,  100, 111, 103,  32,
-		102, 111, 120,  32,  102, 111, 120,  32,
-		108, 108,  97, 109,  97,   32, 118, 117,
-		108, 116, 117, 114,  101,  32, 106,  97,
-		103, 117,  97, 114,  32,  120, 101, 110
-	};
+	string s1 = "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
+	string s2 = "shashavo";
+	sha256(s1);
 
-	compress_block(initial_state, block);
-	cout << "Compress block " << endl;
-	for (int i = 0; i < 8; i++) {
-		cout << initial_state[i] << endl;
-	}
+	display_final_state_H_as_uint();
+	display_final_state_H_as_bits();
+	display_final_state_as_hex();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
