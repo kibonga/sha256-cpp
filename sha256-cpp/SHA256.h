@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <string.h>
 using namespace std;
 
 const int a = 0;
@@ -122,8 +123,7 @@ string sha256(string m) {
 
 	uint8_t block[64];
 	for (int i = 0; i < N; i++) {
-		std::copy( &message[i * 64], &message[(i * 64) + 63], block );
-		block[63] = message[(i * 64) + 63];
+		memcpy(block, &message[i * 64], 64);
 		compress_block(H, block);
 	}
 
