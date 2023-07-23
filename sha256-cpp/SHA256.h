@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 using namespace std;
 
 const int a = 0;
@@ -94,7 +96,7 @@ void compress_block(uint32_t(&H)[8], uint8_t(&block)[64]) {
 	for (int i = 0; i < 8; i++) H[i] += h[i];
 }
 
-void sha256(string m) {
+string sha256(string m) {
 	int size = m.size();
 	int l = (size * 8);
 	vector<uint8_t> message;
@@ -110,7 +112,7 @@ void sha256(string m) {
 	}
 
 	message.reserve(size + k + 1 + 8);
-	copy(m.c_str(), m.c_str() + m.length(), back_inserter(message));
+	copy(m.c_str(), m.c_str() + size, back_inserter(message));
 	message.push_back(128);
 	message.insert(message.end(), k, 0);
 
@@ -124,5 +126,11 @@ void sha256(string m) {
 		block[63] = message[(i * 64) + 63];
 		compress_block(H, block);
 	}
-}
 
+	std::stringstream ss;
+	for (size_t i = 0; i < 8; ++i) {
+		ss << std::hex << std::setw(8) << std::setfill('0') << H[i];
+	}
+
+	return ss.str();
+}
