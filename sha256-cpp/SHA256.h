@@ -1,6 +1,7 @@
 #pragma once
-#include <string>
 #include <vector>
+#include <sstream>
+#include <iomanip>
 using namespace std;
 
 const int a = 0;
@@ -12,14 +13,14 @@ const int f = 5;
 const int g = 6;
 const int h = 7;
 const uint32_t K[64] = {
-		1116352408, 1899447441, 3049323471, 3921009573, 961987163, 1508970993, 2453635748, 2870763221,
-		3624381080, 310598401, 607225278, 1426881987, 1925078388, 2162078206, 2614888103, 3248222580,
-		3835390401, 4022224774, 264347078, 604807628, 770255983, 1249150122, 1555081692, 1996064986,
-		2554220882, 2821834349, 2952996808, 3210313671, 3336571891, 3584528711, 113926993, 338241895,
-		666307205, 773529912, 1294757372, 1396182291, 1695183700, 1986661051, 2177026350, 2456956037,
-		2730485921, 2820302411, 3259730800, 3345764771, 3516065817, 3600352804, 4094571909, 275423344,
-		430227734, 506948616, 659060556, 883997877, 958139571, 1322822218, 1537002063, 1747873779,
-		1955562222, 2024104815, 2227730452, 2361852424, 2428436474, 2756734187, 3204031479, 3329325298
+		0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+		0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+		0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+		0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+		0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+		0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+		0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+		0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 };
 uint32_t H[8] = { 0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19 };
 
@@ -43,12 +44,12 @@ uint32_t big_sigma_1(uint32_t x) {
 	return right_rotate(x, 6) ^ right_rotate(x, 11) ^ right_rotate(x, 25);
 }
 
-void message_schedule(uint32_t(&W)[64], uint8_t(&block_64_bit)[64]) {
+void message_schedule(uint32_t(&W)[64], uint8_t(&block)[64]) {
 	for (int i = 0; i < 16; i++) {
-		W[i] =  ( block_64_bit [i * 4]  <<  24)     |
-				( block_64_bit [i * 4 + 1]  <<  16) |
-				( block_64_bit [i * 4 + 2]  <<  8)  |
-				( block_64_bit [i * 4 + 3]);
+		W[i] =  ( block [i * 4]  <<  24)     |
+				( block [i * 4 + 1]  <<  16) |
+				( block [i * 4 + 2]  <<  8)  |
+				( block [i * 4 + 3]);
 	}
 
 	for (int i = 16; i < 64; i++) {
@@ -82,41 +83,51 @@ void round(uint32_t(&H)[8], uint32_t round_constant, uint32_t schedule_word) {
 	H[a] = T1 + T2;
 	H[e] += T1;
 }
-void compress_block(uint32_t(&H)[8], uint8_t(&block_64_bit)[64]) {
+void compress_block(uint32_t(&H)[8], uint8_t(&block)[64]) {
 	uint32_t W[64];
 	uint32_t h[8];
 
-	message_schedule(W, block_64_bit);
+	message_schedule(W, block);
 
 	for (int i = 0; i < 8; i++) h[i] = H[i];
 	for (int i = 0; i < 64; i++) round(h, W[i], K[i]);
 	for (int i = 0; i < 8; i++) H[i] += h[i];
 }
 
-void sha256(string m) {
-	vector<uint8_t> message(m.begin(), m.end());
-	int N = 1;
-	int l = (message.size() * 8);
-	message.push_back(128);
+string sha256(string m) {
+	int size = m.size();
+	int l = (size * 8);
+	vector<uint8_t> message;
 
+	int N = 1;
 	if ((l + 64) > 512) {
 		N += ((l + 64) / 512);
 	}
+
+	int k = 0;
 	for (int i = l; i < ((N * 512) - 8 - 64); i += 8) {
-		message.push_back(0);
+		k++;
 	}
+
+	message.reserve(size + k + 1 + 8);
+	copy(m.c_str(), m.c_str() + size, back_inserter(message));
+	message.push_back(128);
+	message.insert(message.end(), k, 0);
+
 	for (int i = 0; i < 8; ++i) {
-		message.push_back((uint8_t)((((unsigned long long) l) >> (56 - (8 * i))) & 0xFFu));
+		message.push_back(((((unsigned long long) l) >> (56 - (8 * i))) & 0xFFu));
 	}
 
 	uint8_t block[64];
 	for (int i = 0; i < N; i++) {
-		std::copy(reinterpret_cast<uint8_t*>(&message[i * 64]),
-			reinterpret_cast<uint8_t*>(&message[(i * 64) + 63]),
-			block);
-
-		block[63] = message[(i * 64) + 63];
+		memcpy(block, &message[i * 64], 64);
 		compress_block(H, block);
 	}
-}
 
+	std::stringstream ss;
+	for (size_t i = 0; i < 8; ++i) {
+		ss << std::hex << std::setw(8) << std::setfill('0') << H[i];
+	}
+
+	return ss.str();
+}
