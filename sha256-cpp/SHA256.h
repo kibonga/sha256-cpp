@@ -1,10 +1,7 @@
 #pragma once
-#include <string>
 #include <vector>
-#include <iostream>
 #include <sstream>
 #include <iomanip>
-#include <string.h>
 using namespace std;
 
 const int a = 0;
